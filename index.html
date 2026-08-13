@@ -974,5 +974,25 @@ viewport.addEventListener('click',e=>{
   setTimeout(()=>sp.remove(),520);
 },{passive:true});
 </script>
+
+<style>
+/* 手机减负补丁（8-13）：iPhone Safari 会被 模糊滤镜×星空动画 压崩 */
+@media (max-width: 850px){
+  *{backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+  .star:nth-child(even){display:none}
+  .star{animation-duration:8s !important}
+}
+</style>
+<script>
+if(matchMedia('(max-width:850px)').matches){
+  document.querySelectorAll('*').forEach(function(el){
+    var f=getComputedStyle(el).filter;
+    if(f&&f.indexOf('blur(')>-1){
+      var m=f.match(/blur\((\d+(?:\.\d+)?)px\)/);
+      if(m&&parseFloat(m[1])>6)el.style.filter=f.replace(/blur\([^)]*\)/,'blur(4px)');
+    }
+  });
+}
+</script>
 </body>
 </html>
