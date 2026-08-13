@@ -994,5 +994,12 @@ if(matchMedia('(max-width:850px)').matches){
   });
 }
 </script>
+<style>
+/* 纯净模式v2：手机全关特效 */
+@media (max-width:850px){
+  *,*::before,*::after{animation:none !important;transition:none !important;filter:none !important;-webkit-filter:none !important;box-shadow:none !important;text-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+  .star{display:none !important}
+}
+</style>
 </body>
 </html>
