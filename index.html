@@ -447,6 +447,7 @@ body.season-winter #world.night #aurora,body.season-winter #world.late #aurora{o
 </div>
 
 <script>
+const MOBILE=matchMedia('(max-width:820px)').matches||('ontouchstart' in window); // 全局：手机安全层总开关（修复8-15：曾误锁在makeStars内导致全站JS崩溃）
 const W=3600,H=2200, KEY='forestOfUsWorldBuild_v1';
 const defaults={
   english:[], art:[], questions:[], snowy:[], journal:[], expressions:[],
@@ -523,7 +524,6 @@ setTime();setInterval(setTime,60000);
 function makeStars(){
   const c=document.getElementById('stars');
   let seed=17;const rnd=()=>((seed=(seed*9301+49297)%233280)/233280);
-  const MOBILE=matchMedia('(max-width:820px)').matches||('ontouchstart' in window);
 for(let i=0;i<(MOBILE?55:155);i++){const s=document.createElement('i');s.className='star';const z=.7+rnd()*2.1;s.style.cssText=`left:${rnd()*100}%;top:${rnd()*58}%;width:${z}px;height:${z}px;--dur:${2.5+rnd()*5}s;animation-delay:${-rnd()*5}s`;c.appendChild(s)}
 }
 makeStars();
