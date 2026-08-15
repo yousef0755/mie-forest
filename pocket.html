@@ -56,6 +56,39 @@ nav button.on{color:var(--gold)}
   padding:12px 22px;border-radius:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9}
 .toast.on{opacity:1}
 .tip{font-size:.72rem;color:var(--muted);text-align:center;margin:14px 0 4px}
+
+/* ── 曼雅要「可爱温暖一点点」：圆角放软、底色透一点暖、留白多一点 ── */
+:root{--warm:#f0d9a8;--blush:#e8b4a0;--soft:rgba(244,240,223,.09)}
+body{background-image:radial-gradient(1200px 600px at 50% -10%,rgba(231,197,123,.07),transparent 60%)}
+h2{letter-spacing:.01em}
+.card,section{border-radius:20px !important}
+button{border-radius:16px !important;transition:transform .15s ease,filter .15s ease}
+button:active{transform:scale(.97)}
+
+/* ── 长椅：从完整版搬过来的四样 ── */
+.bench{background:var(--soft);border:1px solid var(--line);border-radius:20px;
+  padding:16px 16px 18px;margin:16px 0}
+.bench h2{margin:0 0 4px}
+.benchsub{color:var(--muted);font-size:.82rem;margin:0 0 14px;line-height:1.7}
+.benchrow{display:flex;gap:9px;flex-wrap:wrap}
+.benchrow button{border:1px solid var(--gold);background:rgba(231,197,123,.1);
+  color:var(--gold);padding:10px 15px;font-size:.9rem;cursor:pointer;font-family:inherit}
+.benchrow button.go{background:var(--gold);color:#231a05;font-weight:700}
+#focusClock{font-size:2.6rem;font-family:Georgia,serif;color:var(--cream);
+  text-align:center;margin:10px 0 6px;letter-spacing:.02em}
+#focusNote{text-align:center;color:var(--muted);font-size:.82rem;min-height:1.3em}
+#artNote,#shakeNote,#photoNote{color:var(--muted);font-size:.82rem;margin-top:9px;line-height:1.7}
+#photoWrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:10px}
+#photoWrap img{width:100%;border-radius:14px;display:block}
+
+/* 页面有全局 button{width:100%}，长椅那几个键各占一整行太长了 */
+.bench .benchrow{gap:8px}
+.bench .benchrow button{
+  width:auto !important;flex:0 1 auto !important;
+  padding:9px 14px !important;font-size:.88rem !important;
+}
+.bench .benchrow button.go{flex:1 1 100% !important;padding:11px !important;font-size:.95rem !important}
+.bench input[type=file]{width:100%;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -109,7 +142,34 @@ nav button.on{color:var(--gold)}
     <div id="jlist"></div>
   </section>
 
-  <section class="page" id="p-album">
+  
+<section class="bench">
+  <h2>长椅</h2>
+  <p class="benchsub">坐一会儿。不用干什么也行。</p>
+
+  <div id="focusClock">25:00</div>
+  <p id="focusNote">专注林间 · 陪你安静一段</p>
+  <div class="benchrow">
+    <button type="button" id="focusGo" class="go">开始专注</button>
+    <button type="button" id="focus15">15 分钟</button>
+    <button type="button" id="focus25">25 分钟</button>
+    <button type="button" id="focusStop">停下</button>
+  </div>
+
+  <div class="benchrow" style="margin-top:16px">
+    <button type="button" id="artBtn">今天画过一点</button>
+    <button type="button" id="shakeBtn">允许摇一摇</button>
+  </div>
+  <p id="artNote"></p>
+  <p id="shakeNote">允许之后，摇手机会让整片森林起风。</p>
+
+  <div style="margin-top:16px">
+    <input type="file" id="photoFile" accept="image/*" style="font-size:.85rem;color:var(--muted)">
+    <p id="photoNote">给雪球拍的、给树拍的，都能放这儿。只存在你这台手机上。</p>
+    <div id="photoWrap"></div>
+  </div>
+</section>
+<section class="page" id="p-album">
     <div class="card">
       <h2>树的相册</h2>
       <div class="sub" id="albumSub">每棵树都是一天的你。</div>
@@ -264,6 +324,118 @@ document.querySelectorAll("nav button").forEach(function(b){
   };
 });
 renderAll();
+
+/* ═══ 长椅：专注 / 画画 / 摇一摇 / 照片 ═══
+   存档沿用 forestOfUs，不另起键——换了她之前的树就没了 */
+(function(){
+  function load(){try{return JSON.parse(localStorage.getItem("forestOfUs")||"{}")}catch(e){return {}}}
+  function persist(d){localStorage.setItem("forestOfUs",JSON.stringify(d))}
+  function today(){return new Date().toISOString().slice(0,10)}
+
+  /* ── 专注林间 ── */
+  var total=25*60, left=total, tick=null;
+  var clock=document.getElementById("focusClock"), note=document.getElementById("focusNote");
+  function show(){
+    var m=Math.floor(left/60), s=left%60;
+    clock.textContent=(m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+  }
+  function setLen(min){ if(tick)return; total=min*60; left=total; show();
+    note.textContent="定了 "+min+" 分钟 · 点开始"; }
+  document.getElementById("focus15").onclick=function(){setLen(15)};
+  document.getElementById("focus25").onclick=function(){setLen(25)};
+  document.getElementById("focusStop").onclick=function(){
+    clearInterval(tick); tick=null; left=total; show();
+    note.textContent="停下了。想坐着也没关系。";
+  };
+  document.getElementById("focusGo").onclick=function(){
+    if(tick)return;
+    note.textContent="在陪你了。手机放下吧。";
+    tick=setInterval(function(){
+      left--; show();
+      if(left<=0){
+        clearInterval(tick); tick=null; left=total; show();
+        note.textContent="这一段过完了。森林记下了。";
+        var d=load(); d.focus=d.focus||[]; d.focus.push({d:today(),min:Math.round(total/60)});
+        persist(d);
+        try{navigator.vibrate&&navigator.vibrate([90,60,90])}catch(e){}
+      }
+    },1000);
+  };
+  show();
+
+  /* ── 画画打卡 ── */
+  var artNote=document.getElementById("artNote");
+  function renderArt(){
+    var d=load(), n=(d.art||[]).length;
+    var doneToday=(d.art||[]).some(function(x){return x===today()||x.d===today()});
+    artNote.textContent = n ? ("一共画过 "+n+" 次"+(doneToday?" · 今天记过了":"")) : "完成、没完成、只画两笔都算。";
+  }
+  document.getElementById("artBtn").onclick=function(){
+    var d=load(); d.art=d.art||[];
+    if(d.art.some(function(x){return x===today()||x.d===today()})){renderArt();return}
+    d.art.push(today()); persist(d); renderArt();
+    artNote.textContent="记下了。画两笔也是画。";
+  };
+  renderArt();
+
+  /* ── 摇一摇起风 ── */
+  var shakeNote=document.getElementById("shakeNote");
+  function windOnce(){
+    document.body.style.transition="transform .5s cubic-bezier(.3,.9,.4,1)";
+    document.body.style.transform="rotate(.35deg) translateY(-2px)";
+    setTimeout(function(){document.body.style.transform=""},520);
+    shakeNote.textContent="起风了。";
+  }
+  var last=0;
+  function onMotion(e){
+    var a=e.accelerationIncludingGravity; if(!a)return;
+    var mag=Math.abs(a.x||0)+Math.abs(a.y||0)+Math.abs(a.z||0);
+    var now=Date.now();
+    if(mag>32 && now-last>1200){ last=now; windOnce(); }
+  }
+  document.getElementById("shakeBtn").onclick=function(){
+    if(typeof DeviceMotionEvent!=="undefined" && DeviceMotionEvent.requestPermission){
+      DeviceMotionEvent.requestPermission().then(function(r){
+        if(r==="granted"){window.addEventListener("devicemotion",onMotion);shakeNote.textContent="好了，摇一摇试试。"}
+        else shakeNote.textContent="没答应也没关系，其他照样用。";
+      }).catch(function(){shakeNote.textContent="这个手机好像不支持。"});
+    }else{
+      window.addEventListener("devicemotion",onMotion);
+      shakeNote.textContent="好了，摇一摇试试。";
+    }
+  };
+
+  /* ── 照片 ── */
+  var wrap=document.getElementById("photoWrap");
+  function renderPhotos(){
+    var d=load(), ps=d.photos||[];
+    wrap.innerHTML=ps.slice(-9).map(function(src){return '<img src="'+src+'" alt="">'}).join("");
+  }
+  document.getElementById("photoFile").onchange=function(e){
+    var f=e.target.files&&e.target.files[0]; if(!f)return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      /* 缩到 480 宽再存，不然本地容量很快就满 */
+      var img=new Image();
+      img.onload=function(){
+        var c=document.createElement("canvas");
+        var w=Math.min(480,img.width), h=Math.round(img.height*w/img.width);
+        c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
+        var d=load(); d.photos=d.photos||[];
+        d.photos.push(c.toDataURL("image/jpeg",.72));
+        if(d.photos.length>24)d.photos=d.photos.slice(-24);
+        try{persist(d); renderPhotos();
+          document.getElementById("photoNote").textContent="放进来了。";
+        }catch(err){
+          document.getElementById("photoNote").textContent="存不下了，删几张旧的再放。";
+        }
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(f);
+  };
+  renderPhotos();
+})();
 </script>
 </body>
 </html>
